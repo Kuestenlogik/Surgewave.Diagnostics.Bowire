@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Bowire workbench for Surgewave, shipped as an installable broker plugin. Serves the interactive /bowire browser speaking surgewave://. A development and staging aid - deliberately not part of a production deployment.</Description>
+    <PackageTags>surgewave;bowire;diagnostics;workbench;grpc;plugin</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kuestenlogik.Surgewave.Diagnostics.Bowire.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!--
+    Bundled. The broker no longer references either of these, so the plugin has
+    to carry them: the workbench itself and the surgewave:// adapter.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Kuestenlogik.Bowire" />
+    <PackageReference Include="Kuestenlogik.Bowire.Protocol.Surgewave" />
+  </ItemGroup>
+
+  <!--
+    Host-provided. ExcludeAssets=runtime keeps the compile reference but keeps the
+    assemblies OUT of the publish output, and that is not a size optimisation:
+    PluginAssemblyLoadContext resolves plugin-first and discovery uses
+    typeof(T).IsAssignableFrom(type). A plugin that ships its own copy of
+    Surgewave.Plugins defines a DIFFERENT IBrokerPlugin, and the broker then never
+    discovers it - silently, with no error anywhere.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Kuestenlogik.Surgewave.Plugins" ExcludeAssets="runtime" />
+    <PackageReference Include="Kuestenlogik.Surgewave.Client" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <!--
+    ExcludeAssets above only covers the references declared here. The adapter
+    pulls Surgewave.Client itself, which drags Core, Protocol, Protocol.Native,
+    Transport and Transport.Tcp into the publish output along a path this project
+    cannot annotate. Shipping those is worse than wasteful: the plugin would then
+    run on the host's Client (excluded) while resolving Core from its own folder,
+    so a Core type crossing that boundary - Core.Observability, which the adapter
+    uses - would be two different types.
+
+    The invariant is simply "the host provides every Kuestenlogik.Surgewave.*
+    assembly", so state it once here rather than chasing each transitive edge.
+    The plugin's own assembly is the one exception.
+  -->
+  <Target Name="RemoveHostProvidedAssemblies" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish
+        Remove="@(ResolvedFileToPublish)"
+        Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('Kuestenlogik.Surgewave.')) and '%(ResolvedFileToPublish.Filename)' != '$(AssemblyName)'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

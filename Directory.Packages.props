@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Shipped inside the .swpkg: the broker does not carry these. -->
+    <PackageVersion Include="Kuestenlogik.Bowire" Version="2.4.0" />
+    <PackageVersion Include="Kuestenlogik.Bowire.Protocol.Surgewave" Version="0.1.12" />
+    <!-- Provided by the host at runtime, compile-time only here. -->
+    <PackageVersion Include="Kuestenlogik.Surgewave.Plugins" Version="0.5.0" />
+    <PackageVersion Include="Kuestenlogik.Surgewave.Client" Version="0.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" />
+  </ItemGroup>
+</Project>

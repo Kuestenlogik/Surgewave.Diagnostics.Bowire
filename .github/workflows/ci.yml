@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Kuestenlogik.Surgewave.Diagnostics.Bowire.slnx
+
+      - name: Build
+        run: dotnet build Kuestenlogik.Surgewave.Diagnostics.Bowire.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test --solution Kuestenlogik.Surgewave.Diagnostics.Bowire.slnx -c Release --no-build -v normal
+
+      # Guards the packaging invariant the README describes: the host provides every
+      # Kuestenlogik.Surgewave.* assembly, so the package must carry none of them
+      # except the plugin itself. A plugin shipping its own Surgewave.Plugins is
+      # never discovered by the broker, and nothing anywhere reports an error.
+      - name: Publish and verify package contents
+        run: |
+          dotnet publish src/Kuestenlogik.Surgewave.Diagnostics.Bowire/Kuestenlogik.Surgewave.Diagnostics.Bowire.csproj \
+            -c Release --no-build -o out
+          STRAY=$(find out -maxdepth 1 -name 'Kuestenlogik.Surgewave.*.dll' \
+            ! -name 'Kuestenlogik.Surgewave.Diagnostics.Bowire.dll' -printf '%f\n')
+          if [ -n "$STRAY" ]; then
+            echo "::error::host-provided assemblies leaked into the package:"
+            echo "$STRAY"
+            exit 1
+          fi
+          for required in Kuestenlogik.Bowire.dll Kuestenlogik.Bowire.Protocol.Surgewave.dll; do
+            [ -f "out/$required" ] || { echo "::error::$required missing from the package"; exit 1; }
+          done
+          echo "package contents verified"

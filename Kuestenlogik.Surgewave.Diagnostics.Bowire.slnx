@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Kuestenlogik.Surgewave.Diagnostics.Bowire/Kuestenlogik.Surgewave.Diagnostics.Bowire.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kuestenlogik.Surgewave.Diagnostics.Bowire.Tests/Kuestenlogik.Surgewave.Diagnostics.Bowire.Tests.csproj" />
+  </Folder>
+</Solution>

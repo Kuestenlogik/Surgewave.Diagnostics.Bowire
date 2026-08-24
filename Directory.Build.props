@@ -1,0 +1,24 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;NU1510;CS1572;CS1573;CS1574</NoWarn>
+  </PropertyGroup>
+
+  <!-- This repository versions itself. It is released after both products it
+       sits between, so it can always build against the current Bowire and the
+       current Surgewave without either of them waiting for it. That is the
+       whole point of it being a separate repository. -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>Kuestenlogik</Authors>
+    <Company>Kuestenlogik</Company>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Kuestenlogik/Surgewave.Diagnostics.Bowire</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+</Project>

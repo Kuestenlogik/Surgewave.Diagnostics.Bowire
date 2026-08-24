@@ -1,0 +1,11 @@
+{
+  "id": "Kuestenlogik.Surgewave.Diagnostics.Bowire",
+  "name": "Bowire Workbench",
+  "version": "0.1.0",
+  "description": "Interactive Bowire workbench at /bowire, speaking surgewave://. Development and staging aid — not intended for production deployments.",
+  "authors": [
+    "Kuestenlogik"
+  ],
+  "license": "Apache-2.0",
+  "assemblies": "Kuestenlogik.Surgewave.Diagnostics.Bowire.dll"
+}

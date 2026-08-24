@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+
+  <!--
+    The plugin project excludes these at runtime on purpose, so they never reach
+    the .swpkg (a plugin that carries its own Surgewave.Plugins is never
+    discovered - see the comment there). The test host stands in for the broker,
+    which is what provides them, so here they have to be present. Their absence
+    is also what these tests would hit first, which is a useful canary: if the
+    exclusion ever stops working, this project starts failing to load.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Kuestenlogik.Surgewave.Plugins" />
+    <PackageReference Include="Kuestenlogik.Surgewave.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kuestenlogik.Surgewave.Diagnostics.Bowire\Kuestenlogik.Surgewave.Diagnostics.Bowire.csproj" />
+  </ItemGroup>
+
+</Project>
