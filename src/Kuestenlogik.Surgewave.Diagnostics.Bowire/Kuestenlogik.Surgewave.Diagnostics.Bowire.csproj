@@ -23,12 +23,24 @@
   </ItemGroup>
 
   <!--
-    Host-provided. ExcludeAssets=runtime keeps the compile reference but keeps the
-    assemblies OUT of the publish output, and that is not a size optimisation:
-    PluginAssemblyLoadContext resolves plugin-first and discovery uses
-    typeof(T).IsAssignableFrom(type). A plugin that ships its own copy of
-    Surgewave.Plugins defines a DIFFERENT IBrokerPlugin, and the broker then never
-    discovers it - silently, with no error anywhere.
+    Host-provided. ExcludeAssets=runtime keeps the compile reference and keeps the
+    assemblies out of the publish output.
+
+    Two loaders exist and they disagree, both measured against a real plugin:
+
+      BrokerPluginActivator.EnsurePluginsLoaded uses Assembly.LoadFrom into the
+      DEFAULT context and skips any assembly whose simple name is already loaded.
+      A host copy in the package is therefore ignored and activation succeeds.
+      This is the path the broker actually activates plugins through.
+
+      PluginLoader and PluginDiscovery(useDefaultContext:false) use an isolated
+      context that resolves plugin-first. There a bundled Surgewave.Plugins gives
+      the plugin a DIFFERENT IPlugin: it is still discovered (that check compares
+      namespace and name as strings) but typeof(T).IsAssignableFrom is false, so
+      it is never activated - silently.
+
+    Excluding them makes the package correct under both loaders, and stops a copy
+    pinned at build time from ever being preferred over the running broker's.
   -->
   <ItemGroup>
     <PackageReference Include="Kuestenlogik.Surgewave.Plugins" ExcludeAssets="runtime" />
@@ -39,10 +51,10 @@
     ExcludeAssets above only covers the references declared here. The adapter
     pulls Surgewave.Client itself, which drags Core, Protocol, Protocol.Native,
     Transport and Transport.Tcp into the publish output along a path this project
-    cannot annotate. Shipping those is worse than wasteful: the plugin would then
-    run on the host's Client (excluded) while resolving Core from its own folder,
-    so a Core type crossing that boundary - Core.Observability, which the adapter
-    uses - would be two different types.
+    cannot annotate. Under the isolated loader that is worse
+    than wasteful: the plugin would run on the host's Client (excluded) while
+    resolving Core from its own folder, so a Core type crossing that boundary -
+    Core.Observability, which the adapter uses - would be two different types.
 
     The invariant is simply "the host provides every Kuestenlogik.Surgewave.*
     assembly", so state it once here rather than chasing each transitive edge.

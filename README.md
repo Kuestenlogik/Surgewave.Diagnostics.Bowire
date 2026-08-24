@@ -21,7 +21,11 @@ The workbench is then served at `/bowire`. Set `Surgewave:Bowire:Enabled=false` 
 | `Kuestenlogik.Bowire` | bundled: the broker does not carry it |
 | `Kuestenlogik.Bowire.Protocol.Surgewave` | bundled: the `surgewave://` adapter |
 
-Everything else — `Surgewave.Plugins`, `Surgewave.Client`, `Core`, `Protocol`, `Transport` — is **provided by the host** and must never be in the package. The plugin load context resolves plugin-first, so a package carrying its own `Surgewave.Plugins` would define a different `IBrokerPlugin` and never be discovered, silently. The csproj enforces this for the whole `Kuestenlogik.Surgewave.*` prefix rather than per reference, because the adapter pulls several of them in transitively.
+Everything else — `Surgewave.Plugins`, `Surgewave.Client`, `Core`, `Protocol`, `Transport` — is **provided by the host** and is kept out of the package.
+
+The broker's own activation path (`BrokerPluginActivator`) loads plugins with `Assembly.LoadFrom` into the default context and skips assemblies already loaded by simple name, so it tolerates host copies in a package. The isolated path (`PluginLoader`, `PluginDiscovery` with `useDefaultContext: false`) does not: it resolves plugin-first, so a bundled `Surgewave.Plugins` gives the plugin a different `IPlugin` — still discovered, since that check compares namespace and name as strings, but never activated, because `IsAssignableFrom` fails. Excluding them is correct under both, and stops a build-time copy from being preferred over the running broker's.
+
+The csproj enforces this for the whole `Kuestenlogik.Surgewave.*` prefix rather than per reference, because the adapter pulls several of them in transitively.
 
 ## Why a separate repository
 
