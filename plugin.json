@@ -7,5 +7,7 @@
     "Kuestenlogik"
   ],
   "license": "Apache-2.0",
-  "assemblies": "Kuestenlogik.Surgewave.Diagnostics.Bowire.dll"
+  "assemblies": [
+    "Kuestenlogik.Surgewave.Diagnostics.Bowire.dll"
+  ]
 }

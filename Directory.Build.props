@@ -14,7 +14,7 @@
        current Surgewave without either of them waiting for it. That is the
        whole point of it being a separate repository. -->
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.1.0-dev</Version>
     <Authors>Kuestenlogik</Authors>
     <Company>Kuestenlogik</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
