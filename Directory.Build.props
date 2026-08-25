@@ -21,4 +21,30 @@
     <RepositoryUrl>https://github.com/Kuestenlogik/Surgewave.Diagnostics.Bowire</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <!-- Plugin packaging via the Kuestenlogik.Surgewave.Build MSBuild tasks. The
+       manifest lives next to the csproj because that is where the task looks
+       ($(MSBuildProjectDirectory)\plugin.json); a copy at the repository root is
+       read by nothing. Trigger:
+
+         dotnet publish src/<plugin> -c Release -p:SurgewavePackPlugin=true
+
+       The task packs whatever publish produced, so RemoveHostProvidedAssemblies
+       and the CI content check keep doing their job unchanged. It also validates
+       the manifest against PluginManifest and writes the sha256 sidecar, which a
+       hand-written zip step in CI would not.
+
+       $(SurgewavePluginVersion) defaults to $(Version) in newer versions of the
+       Build package; until one is published the package takes the manifest's own
+       version field. Nothing to do here when that lands - the property is already
+       wired on their side. -->
+  <PropertyGroup>
+    <_SurgewavePluginManifestPath>$(MSBuildProjectDirectory)\plugin.json</_SurgewavePluginManifestPath>
+    <SurgewaveSppOutputDir Condition="'$(SurgewaveSppOutputDir)' == ''">$(MSBuildThisFileDirectory)artifacts\pluginPackage\</SurgewaveSppOutputDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(_SurgewavePluginManifestPath)')">
+    <PackageReference Include="Kuestenlogik.Surgewave.Build" PrivateAssets="all" />
+    <Content Update="plugin.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

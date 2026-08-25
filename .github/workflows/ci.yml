@@ -39,7 +39,7 @@ jobs:
       - name: Publish and verify package contents
         run: |
           dotnet publish src/Kuestenlogik.Surgewave.Diagnostics.Bowire/Kuestenlogik.Surgewave.Diagnostics.Bowire.csproj \
-            -c Release --no-build -o out
+            -c Release --no-build -o out -p:SurgewavePackPlugin=true
           STRAY=$(find out -maxdepth 1 -name 'Kuestenlogik.Surgewave.*.dll' \
             ! -name 'Kuestenlogik.Surgewave.Diagnostics.Bowire.dll' -printf '%f\n')
           if [ -n "$STRAY" ]; then
@@ -51,3 +51,18 @@ jobs:
             [ -f "out/$required" ] || { echo "::error::$required missing from the package"; exit 1; }
           done
           echo "package contents verified"
+
+          # The package is the artefact the README tells operators to install, so
+          # its absence has to fail the build rather than be noticed later.
+          SPP=$(find artifacts/pluginPackage -name '*.swpkg' 2>/dev/null | head -1)
+          if [ -z "$SPP" ]; then
+            echo "::error::no .swpkg produced - SurgewavePackPlugin did not run"
+            exit 1
+          fi
+          echo "packed: $SPP"
+
+      - name: Upload .swpkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-package
+          path: artifacts/pluginPackage/*
