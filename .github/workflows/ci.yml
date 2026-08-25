@@ -31,8 +31,11 @@ jobs:
 
       # Guards the packaging invariant the README describes: the host provides every
       # Kuestenlogik.Surgewave.* assembly, so the package must carry none of them
-      # except the plugin itself. A plugin shipping its own Surgewave.Plugins is
-      # never discovered by the broker, and nothing anywhere reports an error.
+      # except the plugin itself. Not because the broker would fail to discover such
+      # a plugin - its activation path loads into the default context and skips
+      # assemblies already loaded, which I measured rather than assumed - but because
+      # a package that carries them is larger than it needs to be and depends on load
+      # order for its type identity instead of on there being only one copy.
       - name: Publish and verify package contents
         run: |
           dotnet publish src/Kuestenlogik.Surgewave.Diagnostics.Bowire/Kuestenlogik.Surgewave.Diagnostics.Bowire.csproj \
