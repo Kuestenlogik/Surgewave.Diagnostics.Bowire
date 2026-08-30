@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Shipped inside the .swpkg: the broker does not carry these. -->
-    <PackageVersion Include="Kuestenlogik.Bowire" Version="2.4.0" />
+    <PackageVersion Include="Kuestenlogik.Bowire" Version="2.5.0" />
     <PackageVersion Include="Kuestenlogik.Bowire.Protocol.Surgewave" Version="0.1.12" />
     <!-- Build-time only: the .swpkg packing tasks. -->
     <PackageVersion Include="Kuestenlogik.Surgewave.Build" Version="0.5.1" />
