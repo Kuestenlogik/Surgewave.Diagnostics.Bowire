@@ -36,21 +36,10 @@ jobs:
       # assemblies already loaded, which I measured rather than assumed - but because
       # a package that carries them is larger than it needs to be and depends on load
       # order for its type identity instead of on there being only one copy.
-      - name: Publish and verify package contents
+      - name: Pack and verify package contents
         run: |
           dotnet publish src/Kuestenlogik.Surgewave.Diagnostics.Bowire/Kuestenlogik.Surgewave.Diagnostics.Bowire.csproj \
-            -c Release --no-build -o out -p:SurgewavePackPlugin=true
-          STRAY=$(find out -maxdepth 1 -name 'Kuestenlogik.Surgewave.*.dll' \
-            ! -name 'Kuestenlogik.Surgewave.Diagnostics.Bowire.dll' -printf '%f\n')
-          if [ -n "$STRAY" ]; then
-            echo "::error::host-provided assemblies leaked into the package:"
-            echo "$STRAY"
-            exit 1
-          fi
-          for required in Kuestenlogik.Bowire.dll Kuestenlogik.Bowire.Protocol.Surgewave.dll; do
-            [ -f "out/$required" ] || { echo "::error::$required missing from the package"; exit 1; }
-          done
-          echo "package contents verified"
+            -c Release --no-build -p:SurgewavePackPlugin=true
 
           # The package is the artefact the README tells operators to install, so
           # its absence has to fail the build rather than be noticed later.
@@ -60,6 +49,34 @@ jobs:
             exit 1
           fi
           echo "packed: $SPP"
+
+          # The checks read the .swpkg itself, not the publish directory: the pack
+          # step removes that directory once it has zipped it, which is how this
+          # step came to fail on a missing 'out' while the package was fine. And
+          # the archive is what ships, so it is what has to be right.
+          CONTENTS=$(unzip -Z1 "$SPP")
+          echo "$CONTENTS"
+
+          # The host provides every Kuestenlogik.Surgewave.* assembly, so the
+          # package must carry none of them except the plugin itself. Not because
+          # the broker would fail to discover such a plugin - its activation path
+          # loads into the default context and skips assemblies already loaded,
+          # which I measured rather than assumed - but because a package that
+          # carries them is larger than it needs to be and depends on load order
+          # for its type identity instead of on there being only one copy.
+          STRAY=$(echo "$CONTENTS" | grep -E '(^|/)Kuestenlogik\.Surgewave\.[^/]*\.dll$' \
+            | grep -v '^lib/Kuestenlogik\.Surgewave\.Diagnostics\.Bowire\.dll$' || true)
+          if [ -n "$STRAY" ]; then
+            echo "::error::host-provided assemblies leaked into the package:"
+            echo "$STRAY"
+            exit 1
+          fi
+          for required in lib/Kuestenlogik.Surgewave.Diagnostics.Bowire.dll \
+                          deps/Kuestenlogik.Bowire.dll deps/Kuestenlogik.Bowire.Protocol.Surgewave.dll \
+                          plugin.json; do
+            echo "$CONTENTS" | grep -qx "$required" || { echo "::error::$required missing from the package"; exit 1; }
+          done
+          echo "package contents verified"
 
       - name: Upload .swpkg
         uses: actions/upload-artifact@v4
