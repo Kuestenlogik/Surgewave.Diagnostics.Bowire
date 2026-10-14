@@ -5,8 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591;NU1510;CS1572;CS1573;CS1574</NoWarn>
+    <!-- XML documentation for the shipped libraries only. Test projects are excluded by name, because
+         IsTestProject is set in the project file, after this file is evaluated. -->
+    <GenerateDocumentationFile Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">true</GenerateDocumentationFile>
+    <!-- NuGet audit: every package in the graph, direct and transitive, with an advisory of any severity
+         (NU1901-NU1904) fails the restore through TreatWarningsAsErrors. No NuGet warning is suppressed;
+         an advisory without a patched version would get one NuGetAuditSuppress item with its link and reason. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
 
   <!-- This repository versions itself. It is released after both products it
